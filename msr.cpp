@@ -200,8 +200,14 @@ int32 MsrHandle::read(uint64 msr_number, uint64 * value)
 MsrHandle::MsrHandle(uint32 cpu) : fd(-1), cpu_id(cpu)
 {
     char * path = new char[200];
-    sprintf(path, "/dev/cpu/%d/msr", cpu);
+    // try msr-safe device path
+    sprintf(path, "/dev/cpu/%d/msr_safe", cpu);
     int handle = ::open(path, O_RDWR);
+    if (handle < 0)
+    {   // try standard msr device path
+        sprintf(path, "/dev/cpu/%d/msr", cpu);
+        handle = ::open(path, O_RDWR);
+    }
     if (handle < 0)
     {   // try Android msr device path
         sprintf(path, "/dev/msr%d", cpu);
